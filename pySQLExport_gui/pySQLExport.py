@@ -9,6 +9,7 @@ class PySQLExport:
         self.config = {}
         self.error = None
         self.db = None
+        self.version = '0.1.0'
 
     def connect_db(self, db_type, host, user, pw, database, port):
         self.config = {

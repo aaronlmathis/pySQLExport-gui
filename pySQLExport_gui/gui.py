@@ -57,7 +57,7 @@ class NewConnectionWindow(QMainWindow):
         self.header_label.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)  # Center the text
         self.main_layout.addWidget(self.header_label)
 
-        self.version_label = QLabel('version 0.1.4')
+        self.version_label = QLabel(self.main_app.version)
         self.version_font = QFontDatabase.systemFont(QFontDatabase.SystemFont.SmallestReadableFont)
         self.version_font.setPointSize(14)  # Ensure the font size is set
         self.version_label.setFont(self.version_font)
