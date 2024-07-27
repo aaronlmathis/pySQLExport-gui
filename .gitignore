@@ -1,0 +1,4 @@
+__pycache__/
+pySQLExport_gui.egg-info/
+build/
+dist/
