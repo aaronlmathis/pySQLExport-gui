@@ -21,6 +21,12 @@
 
 ### Installation Steps
 
+```sh
+pip install pySQLExport-gui
+```
+
+OR
+
 1. **Clone the repository:**
 
     ```sh
