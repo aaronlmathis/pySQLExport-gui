@@ -2,3 +2,5 @@ __pycache__/
 pySQLExport_gui.egg-info/
 build/
 dist/
+/.venv
+pySQLExport_gui/pySQLExport-gui.code-workspace
