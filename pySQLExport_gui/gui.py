@@ -48,9 +48,9 @@ class NewConnectionWindow(QMainWindow):
         self.setGeometry(200, 200, 400, 200)  
         self.setWindowTitle("pySQLExport")
 
-        self.initUI()
+        self.init_ui()
 
-    def initUI(self):
+    def init_ui(self):
         self.central_widget = QWidget()  # Create a central widget
         self.setCentralWidget(self.central_widget)  # Set the central widget
 
@@ -58,24 +58,24 @@ class NewConnectionWindow(QMainWindow):
         self.main_layout.setContentsMargins(40, 20, 40, 20)  # Set margins (left, top, right, bottom)
         self.central_widget.setLayout(self.main_layout)
 
-        self.renderHeader()
+        self.render_header()
         self.main_layout.addSpacing(20)
-        self.renderHLine()
+        self.render_HLine()
         self.main_layout.addSpacing(20)
-        self.renderInfoText()
+        self.render_info_text()
         self.main_layout.addSpacing(40)
 
-        self.renderForm() # Render form layout
+        self.render_form() # Render form layout
         self.set_window_style() 
 
-    def renderHLine(self):
+    def render_HLine(self):
         # Add a horizontal line separator
         line = QFrame()
         line.setFrameShape(QFrame.Shape.HLine)
         line.setFrameShadow(QFrame.Shadow.Sunken)
         self.main_layout.addWidget(line)
 
-    def renderHeader(self):
+    def render_header(self):
       # Create and add header text
         self.header_label = QLabel("pySQLExport")
         self.header_font = QFontDatabase.systemFont(QFontDatabase.SystemFont.TitleFont)
@@ -92,7 +92,7 @@ class NewConnectionWindow(QMainWindow):
         self.version_label.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)  # Center the text        
         self.main_layout.addWidget(self.version_label)
 
-    def renderInfoText(self):
+    def render_info_text(self):
         # Add informative text
         self.info_label = QLabel("Please enter database server details in order to connect to a database.")
         self.info_font = QFontDatabase.systemFont(QFontDatabase.SystemFont.GeneralFont)
@@ -102,7 +102,7 @@ class NewConnectionWindow(QMainWindow):
         self.info_label.setContentsMargins(0, 20, 0, 0)        
         self.main_layout.addWidget(self.info_label)
 
-    def renderForm(self):
+    def render_form(self):
         self.form_layout = QFormLayout()
         self.form_layout.setContentsMargins(0, 0, 0, 0)  # Set margins (left, top, right, bottom)
         self.form_layout.setSpacing(10)  # Set spacing between form elements
@@ -230,7 +230,7 @@ class MainWindow(QMainWindow):
         msg_box.setText(message)
         msg_box.exec()            
 
-    def renderDetailedErrorText(self, e):
+    def render_detailed_error_text(self, e):
         msg = QMessageBox(self)
         msg.setIcon(QMessageBox.Icon.Critical)
         msg.setWindowTitle("pySQLExport - Error")
@@ -310,6 +310,7 @@ class MainWindow(QMainWindow):
 
         new_table_view = QtWidgets.QTableView(new_tab)
         new_table_view.setSizePolicy(QtWidgets.QSizePolicy.Policy.Expanding, QtWidgets.QSizePolicy.Policy.Expanding)
+        new_table_view.setSelectionBehavior(QAbstractItemView.SelectionBehavior.SelectRows)  # Set selection behavior to rows
         new_table_view.setObjectName(f"table_view_{self.tab_widget.count() + 1}")
         new_tab_layout.addWidget(new_table_view)
 
@@ -437,9 +438,6 @@ class MainWindow(QMainWindow):
     
         return model.rowCount() == 0  
 
-   
-
-    
     def copy_selected(self):
         table_view = self.get_active_tableview()
         
@@ -580,7 +578,7 @@ class MainWindow(QMainWindow):
         if e is True:
             QMessageBox.information(self, "Success", "File was exported successfully.")
         elif e is not None:
-            self.renderDetailedErrorText(f"{e}")
+            self.render_detailed_error_text(f"{e}")
                       
 
     def get_selected_rows(self, table_view):
