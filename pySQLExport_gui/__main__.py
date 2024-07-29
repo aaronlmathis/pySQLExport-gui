@@ -27,7 +27,7 @@
 """
 
 
-from pySQLExport_gui.gui import NewConnectionWindow, MainWindow
+from pySQLExport_gui.new_connection_window import NewConnectionWindow
 from PyQt6.QtWidgets import QApplication
 import sys #Module for getting args
 
