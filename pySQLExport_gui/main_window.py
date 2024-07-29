@@ -50,44 +50,12 @@ from PyQt6.QtWidgets import (
 
 from pySQLExport_gui.pySQLExport import PySQLExport
 
-class EditableTabWidget(QTabWidget):
-    def __init__(self, parent=None):
-        super().__init__(parent)
-        self.line_edit = QLineEdit(self)
-        self.line_edit.setWindowFlags(Qt.WindowType.Popup)
-        self.line_edit.editingFinished.connect(self.finish_editing)
-        self.line_edit.hide()
-        self.editing_index = -1
-
-    def mouseDoubleClickEvent(self, event: QMouseEvent):
-        print("Double-click detected")  # Debug print
-        index = self.tabBar().tabAt(event.pos())
-        print(f"Double-clicked tab index: {index}")  # Debug print
-        if index != -1 and index != self.count() - 1:  # Prevent editing "New +" tab
-            self.start_editing(index)
-        super().mouseDoubleClickEvent(event)
-
-    def start_editing(self, index):
-        rect = self.tabBar().tabRect(index)
-        self.line_edit.setGeometry(rect)
-        self.line_edit.setText(self.tabText(index))
-        self.line_edit.show()
-        self.line_edit.setFocus()
-        self.line_edit.selectAll()
-        self.editing_index = index
-
-    def finish_editing(self):
-        if self.editing_index != -1:
-            new_text = self.line_edit.text()
-            self.setTabText(self.editing_index, new_text)
-            self.line_edit.hide()
-            self.editing_index = -1
 
 class MainWindow(QMainWindow):
     def __init__(self, main_app):
         super(MainWindow, self).__init__()
         self.main_app = main_app
-        self.setGeometry(200, 200, 800, 600)
+        self.setGeometry(200, 200, 1024, 768)
         self.setWindowTitle("pySQLExport")
         self.init_ui()
         self.setCentralWidget(self.centralwidget)
@@ -175,9 +143,9 @@ class MainWindow(QMainWindow):
         self.append_check_box.setObjectName("append_check_box")
         self.form_layout.setWidget(2, QFormLayout.ItemRole.FieldRole, self.append_check_box)
 
-        self.duplicates_check_box = QCheckBox("Allow adding duplicate rows of data", self.centralwidget)
-        self.duplicates_check_box.setObjectName("duplicate_check_box")
-        self.form_layout.setWidget(3, QFormLayout.ItemRole.FieldRole, self.duplicates_check_box)
+        #self.duplicates_check_box = QCheckBox("Allow adding duplicate rows of data", self.centralwidget)
+        #self.duplicates_check_box.setObjectName("duplicate_check_box")
+        #self.form_layout.setWidget(3, QFormLayout.ItemRole.FieldRole, self.duplicates_check_box)
 
         self.new_tab_check_box = QCheckBox("Open results of query in a new tab", self.centralwidget)
         self.new_tab_check_box.setObjectName("new_tab_check_box")
@@ -192,15 +160,15 @@ class MainWindow(QMainWindow):
 
     def render_tab_table(self):
         
-        self.tab_widget = EditableTabWidget(self.centralwidget)  # Use EditableTabWidget
+        self.tab_widget = QTabWidget(self.centralwidget)  
         self.tab_widget.setObjectName("tab_widget")
         self.tab_widget.setTabsClosable(True)
         self.tab_widget.tabCloseRequested.connect(self.close_tab)
-
         self.tab_widget.addTab(QWidget(), "New +")
         self.tab_widget.tabBarClicked.connect(self.handle_tab_click)
         self.add_new_tab()
         self.verticalLayout.addWidget(self.tab_widget, stretch=9)  # Add the tabWidget with stretch factor
+
 
     @pyqtSlot(int)
     def handle_tab_click(self, index):
@@ -220,16 +188,16 @@ class MainWindow(QMainWindow):
         new_table_view.setObjectName(f"table_view_{self.tab_widget.count() + 1}")
         new_tab_layout.addWidget(new_table_view)
 
-        tab_num = 1  if self.tab_widget.count() == 1 else self.tab_widget.count() 
+        tab_num = 1 if self.tab_widget.count() == 1 else self.tab_widget.count()
 
         # Insert the new tab before the "New +" tab
         index = self.tab_widget.count() - 1
-        self.tab_widget.insertTab(index, new_tab, f"Untitled {tab_num}")
+        self.tab_widget.insertTab(index, new_tab, f"DataView {tab_num}")
         self.tab_widget.setCurrentWidget(new_tab)
-        return index    
+        return index
     
     def close_tab(self, index):
-        if index != self.tab_widget.count() - 1:  # Prevent closing "New +" tab
+        if self.tab_widget.count() != 2 and index != self.tab_widget.count() - 1:  # Prevent closing "New +" tab
             self.tab_widget.removeTab(index)
 
     def render_menu_bar(self):
@@ -593,7 +561,25 @@ class MainWindow(QMainWindow):
         else:
             self.render_info_text("Query cannot be empty.          ")
 
-    def remove_duplicate_rows(self, new_data, table_view):
+    def has_duplicate_rows(self, table_view: QTableView) -> tuple:
+        model = table_view.model()
+        if not model:
+            return False, 0
+
+        seen_rows = set()
+        duplicate_count = 0
+
+        # Check for duplicate row indices and count them
+        for row in range(model.rowCount()):
+            row_data = tuple(model.index(row, col).data() for col in range(model.columnCount()))
+            if row_data in seen_rows:
+                duplicate_count += 1
+            else:
+                seen_rows.add(row_data)
+
+        return duplicate_count > 0, duplicate_count
+
+    def remove_duplicate_rows(self, new_data, table_view: QTableView):
         model = table_view.model()
         if model is None:
             return new_data
@@ -662,17 +648,17 @@ class MainWindow(QMainWindow):
             #for item in items:
             #    item.setFlags(item.flags() & ~Qt.ItemFlag.ItemIsEditable)  # Make item non-editable
 
-            if self.duplicates_check_box.isChecked():
-                model.appendRow(items)
-            else:
-                if not self.row_exists(model, items):
-                    model.appendRow(items) 
+            #if self.duplicates_check_box.isChecked():
+            model.appendRow(items)
+            #else:
+             #   if not self.row_exists(model, items):
+              #      model.appendRow(items) 
 
         header = table_view.horizontalHeader()
         header.setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
-
-        results_count = len(results)
-        remove_duplicates = self.ask_user('Remove Duplicates', 'Would you like to remove duplicates?')
-        if remove_duplicates:
-            self.remove_duplicate_from_tableview(table_view) 
+        duplicate, duplicate_count = self.has_duplicate_rows(table_view)
+        if duplicate:
+            remove_duplicates = self.ask_user('Remove Duplicates?', f'The query returned {duplicate_count} rows that already existed in the table view. Would you like to remove the duplicate items?')
+            if remove_duplicates:
+                self.remove_duplicate_from_tableview(table_view) 
 
