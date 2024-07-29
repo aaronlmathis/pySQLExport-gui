@@ -8,3 +8,6 @@ pandas==2.2.2
 psycopg2==2.9.9
 PyQt6==6.7.1
 PyQt6_sip==13.8.0
+numpy
+tables
+fastparquet
