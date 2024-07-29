@@ -60,7 +60,9 @@ class EditableTabWidget(QTabWidget):
         self.editing_index = -1
 
     def mouseDoubleClickEvent(self, event: QMouseEvent):
+        print("Double-click detected")  # Debug print
         index = self.tabBar().tabAt(event.pos())
+        print(f"Double-clicked tab index: {index}")  # Debug print
         if index != -1 and index != self.count() - 1:  # Prevent editing "New +" tab
             self.start_editing(index)
         super().mouseDoubleClickEvent(event)
@@ -542,7 +544,7 @@ class MainWindow(QMainWindow):
 
     def new_connection(self):
         self.main_app.close_db()
-        from new_connection_window import NewConnectionWindow
+        from pySQLExport_gui.new_connection_window import NewConnectionWindow
         self.connection_window = NewConnectionWindow()
         self.connection_window.show()
         self.close()

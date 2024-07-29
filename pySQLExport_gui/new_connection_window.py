@@ -210,7 +210,7 @@ class NewConnectionWindow(QMainWindow):
 
         if self.main_app.connect_db(db_type, server, username, password, database, port):
             # Assuming the login is successful
-            from main_window import MainWindow 
+            from pySQLExport_gui.main_window import MainWindow 
             self.main_window = MainWindow(self.main_app)
             self.main_window.show()
             self.close()
