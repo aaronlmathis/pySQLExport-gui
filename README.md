@@ -2,13 +2,13 @@
 
 ## Overview
 
-**pySQLExport-gui** is a cross-platform graphical application designed to pull SQL data from MySQL and PostgreSQL databases and export it to various formats including CSV, JSON, HTML, XML, Excel, and more. Built using PyQt6, it provides an intuitive interface for managing database connections, running queries, and exporting data.
+**pySQLExport-gui** is a cross-platform graphical application designed to pull SQL data from MySQL and PostgreSQL databases and export it to various formats including CSV, JSON, HTML, XML, Excel, Parquet, HDF5, and more. Built using PyQt6, it provides an intuitive interface for managing database connections, running queries, and exporting data.
 
 ## Features
 
 - **Cross-Platform:** Runs on Windows, macOS, and Linux.
 - **Database Support:** Connects to both MySQL and PostgreSQL databases.
-- **Data Export:** Export query results to multiple formats including CSV, JSON, HTML, XML, and Excel.
+- **Data Export:** Export query results to multiple formats including CSV, JSON, HTML, XML, Parquet, HDF5, and Excel.
 - **GUI:** Easy-to-use graphical user interface built with PyQt6.
 - **Data Management:** Support for appending data to existing results or replacing them, with options to handle duplicates.
 
@@ -83,7 +83,7 @@ After installation, you can start the application by running:
 ### Exporting Data
 
 1. **Export Selection:** Select the rows you wish to export, or choose to export all rows.
-2. **Export Format:** Choose the desired export format from the options available (CSV, JSON, HTML, XML, Excel).
+2. **Export Format:** Choose the desired export format from the options available (CSV, JSON, HTML, XML, Excel, Parquet, HDF5).
 3. **Save File:** A file dialog will prompt you to choose the save location.
 
 ![pySQLExport Export Menu](images/pySQLExport_Export_Menu.png)
@@ -99,7 +99,10 @@ After installation, you can start the application by running:
 - `PyQt6`: For the graphical user interface.
 - `mysql-connector-python`: To connect to MySQL databases.
 - `psycopg2-binary`: To connect to PostgreSQL databases.
-- 'pandas': To convert SQL to various data formats
+- `pandas`: To convert SQL to various data formats
+- `fastparquet`: To convert SQL to Parquet
+- `numpy`: To assist in conversion to HDF5
+- `tables`: To assist in export to HDF5
 
 ## Contributing
 
