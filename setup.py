@@ -45,6 +45,7 @@ setup(
         'pandas',
         'psycopg2-binary',
         "fastparquet",
+        "numpy",
         "tables"
     ],
     entry_points={
