@@ -133,7 +133,24 @@ class MainWindow(QMainWindow):
         msg_box.setWindowTitle("pySQLExport - Info")
         msg_box.setText(message)
         msg_box.exec()           
+    
+    def ask_user(self, title, message):
+        msg_box = QMessageBox()
+        msg_box.setIcon(QMessageBox.Icon.Question)
+        msg_box.setWindowTitle(title)
+        msg_box.setText(message)
+        msg_box.setStandardButtons(QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No)
+        msg_box.setDefaultButton(QMessageBox.StandardButton.No)
+        
+        response = msg_box.exec()
 
+        if response == QMessageBox.StandardButton.Yes:
+            print("User chose Yes")
+            return True
+        else:
+            print("User chose No")
+            return False
+        
     def render_query_form(self):
         self.form_layout = QFormLayout()
         self.form_layout.setSizeConstraint(QLayout.SizeConstraint.SetDefaultConstraint)
@@ -595,6 +612,26 @@ class MainWindow(QMainWindow):
 
         return cleaned_data
     
+    def remove_duplicate_from_tableview(self, table_view: QTableView):
+        model = table_view.model()
+        if not model:
+            return
+
+        seen_rows = set()
+        duplicates = []
+
+        # Collect duplicate row indices
+        for row in range(model.rowCount()):
+            row_data = tuple(model.index(row, col).data() for col in range(model.columnCount()))
+            if row_data in seen_rows:
+                duplicates.append(row)
+            else:
+                seen_rows.add(row_data)
+
+        # Remove duplicates from bottom to top to prevent reindexing issues
+        for row in reversed(duplicates):
+            model.removeRow(row)
+    
     def row_exists(self, model, new_row):
         for row in range(model.rowCount()):
             match = True
@@ -622,8 +659,8 @@ class MainWindow(QMainWindow):
     
         for row in results:
             items = [QStandardItem(str(field)) for field in row]
-            for item in items:
-                item.setFlags(item.flags() & ~Qt.ItemFlag.ItemIsEditable)  # Make item non-editable
+            #for item in items:
+            #    item.setFlags(item.flags() & ~Qt.ItemFlag.ItemIsEditable)  # Make item non-editable
 
             if self.duplicates_check_box.isChecked():
                 model.appendRow(items)
@@ -633,4 +670,9 @@ class MainWindow(QMainWindow):
 
         header = table_view.horizontalHeader()
         header.setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
+
+        results_count = len(results)
+        remove_duplicates = self.ask_user('Remove Duplicates', 'Would you like to remove duplicates?')
+        if remove_duplicates:
+            self.remove_duplicate_from_tableview(table_view) 
 
