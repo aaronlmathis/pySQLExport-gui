@@ -70,16 +70,23 @@ After installation, you can start the application by running:
 6. **Port:** The port will automatically update based on the database type selected but can be manually adjusted if needed.
 7. **Establish Connection:** Click the `Establish Connection` button to connect to the database.
 
+   
+![pySQLExport Connection Screen](images/pySQLExport_connection_screen.png)
 ### Running Queries
 
 1. **SQL Query:** Enter your SQL query in the provided text area.
 2. **Execute Query:** Click the `Execute Query` button to run the query. Results will be displayed in the table view.
+
+
+![pySQLExport Query Window](images/pySQLExport_Query_window.png)
 
 ### Exporting Data
 
 1. **Export Selection:** Select the rows you wish to export, or choose to export all rows.
 2. **Export Format:** Choose the desired export format from the options available (CSV, JSON, HTML, XML, Excel).
 3. **Save File:** A file dialog will prompt you to choose the save location.
+
+![pySQLExport Export Menu](images/pySQLExport_Export_Menu.png)
 
 ### Handling Duplicates
 
