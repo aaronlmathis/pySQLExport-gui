@@ -125,7 +125,7 @@ class MainWindow(QMainWindow):
         self.append_check_box.setObjectName("append_check_box")
         self.form_layout.setWidget(2, QFormLayout.ItemRole.FieldRole, self.append_check_box)
 
-        self.duplicates_check_box = QCheckBox("Allow duplicate rows of data", self.centralwidget)
+        self.duplicates_check_box = QCheckBox("Allow adding duplicate rows of data", self.centralwidget)
         self.duplicates_check_box.setObjectName("duplicate_check_box")
         self.form_layout.setWidget(3, QFormLayout.ItemRole.FieldRole, self.duplicates_check_box)
 
