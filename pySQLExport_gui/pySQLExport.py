@@ -37,7 +37,9 @@ class PySQLExport:
         self.config = {}
         self.error = None
         self.db = None
-        self.version = '0.1.0'
+        self.version = '1.0'
+        self.results = None
+        self.columns = None
 
     def connect_db(self, db_type, host, user, pw, database, port):
         self.config = {
@@ -117,3 +119,20 @@ class PySQLExport:
             self.error = f"Failed to export to Excel: {e}"
             return e
 
+    def exportToParquet(self, results, columns, outfile):
+        df = pd.DataFrame(results, columns=columns)
+        try:
+            df.to_parquet(outfile, index=False)
+            return True
+        except Exception as e:
+            self.error = f"Failed to export to Parquet: {e}"
+            return e
+    
+    def exportToHDF5(self, results, columns, outfile):
+        df = pd.DataFrame(results, columns=columns)
+        try:
+            df.to_hdf(outfile, key='df', mode='w', index=False)
+            return True
+        except Exception as e:
+            self.error = f"Failed to export to HDF5: {e}"
+            return e

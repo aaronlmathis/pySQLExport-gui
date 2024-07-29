@@ -30,7 +30,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='pySQLExport-gui',
-    version='0.1.0',
+    version='1.0',
     author='Aaron Mathis',
     author_email='aaron.mathis@gmail.com',
     description='A GUI application for exporting SQL query results into csv, json, xml, html, excel, and muck more.',

@@ -113,10 +113,8 @@ class MainWindow(QMainWindow):
         response = msg_box.exec()
 
         if response == QMessageBox.StandardButton.Yes:
-            print("User chose Yes")
             return True
         else:
-            print("User chose No")
             return False
         
     def render_query_form(self):
@@ -127,14 +125,25 @@ class MainWindow(QMainWindow):
         self.label_sql_query = QLabel(self.centralwidget)
         self.label_sql_query.setObjectName("label_sql_query")
 
-        self.form_layout.setWidget(0,  QFormLayout.ItemRole.LabelRole, self.label_sql_query)
+        # Create a horizontal layout to hold the label, spacer, and text edit
+        row_layout = QHBoxLayout()
+        row_layout.addWidget(self.label_sql_query)
+
+        # Add a spacer item
+        spacer = QWidget(self.centralwidget)
+        spacer.setFixedWidth(20)  # Adjust the width of the spacer as needed
+        row_layout.addWidget(spacer)
 
         self.text_sql_query = QTextEdit(self.centralwidget)
         self.text_sql_query.setObjectName("text_sql_query")
-        self.form_layout.setWidget(0, QFormLayout.ItemRole.FieldRole, self.text_sql_query)
+        row_layout.addWidget(self.text_sql_query)
+
+        self.form_layout.setLayout(0, QFormLayout.ItemRole.FieldRole, row_layout)
         self.verticalLayout.addLayout(self.form_layout, stretch=1)
+
         self.query_button = QPushButton(self.centralwidget)
         self.query_button.setObjectName("query_button")
+        self.query_button.setText("Execute Query")
         self.query_button.clicked.connect(lambda: self.run_query(self.text_sql_query.toPlainText())) # Connect to function when pressed
 
         self.form_layout.setWidget(1, QFormLayout.ItemRole.FieldRole, self.query_button)
@@ -143,18 +152,14 @@ class MainWindow(QMainWindow):
         self.append_check_box.setObjectName("append_check_box")
         self.form_layout.setWidget(2, QFormLayout.ItemRole.FieldRole, self.append_check_box)
 
-        #self.duplicates_check_box = QCheckBox("Allow adding duplicate rows of data", self.centralwidget)
-        #self.duplicates_check_box.setObjectName("duplicate_check_box")
-        #self.form_layout.setWidget(3, QFormLayout.ItemRole.FieldRole, self.duplicates_check_box)
-
         self.new_tab_check_box = QCheckBox("Open results of query in a new tab", self.centralwidget)
         self.new_tab_check_box.setObjectName("new_tab_check_box")
-        self.form_layout.setWidget(4, QFormLayout.ItemRole.FieldRole, self.new_tab_check_box)
+        self.form_layout.setWidget(3, QFormLayout.ItemRole.FieldRole, self.new_tab_check_box)
         
         self.button_layout = QHBoxLayout()
         self.button_layout.addStretch()
         self.button_layout.addWidget(self.query_button)
-        self.verticalLayout.addLayout(self.button_layout)    
+        self.verticalLayout.addLayout(self.button_layout)
 
         #self.verticalLayout.addLayout(self.formLayout_2, stretch=1)
 
@@ -276,6 +281,16 @@ class MainWindow(QMainWindow):
         self.actionExportSelectionToExcel.triggered.connect(lambda: self.export("selection", "excel"))
         self.menu_export_selection.addAction(self.actionExportSelectionToExcel)
 
+        self.action_export_selection_to_parquet = QAction("To Parquet", self)
+        self.action_export_selection_to_parquet.setStatusTip("Export selected items to Parquet format")
+        self.action_export_selection_to_parquet.triggered.connect(lambda: self.export("selection", "parquet"))
+        self.menu_export_selection.addAction(self.action_export_selection_to_parquet)
+
+        self.action_export_selection_to_hdf5 = QAction("To HDF5", self)
+        self.action_export_selection_to_hdf5.setStatusTip("Export selected items to HDF5 format")
+        self.action_export_selection_to_hdf5.triggered.connect(lambda: self.export("selection", "hdf5"))
+        self.menu_export_selection.addAction(self.action_export_selection_to_hdf5)        
+
         # Export All submenu
         self.menu_export_all = QMenu("Export All", self.menu_export)
         self.menu_export.addMenu(self.menu_export_all)
@@ -304,6 +319,16 @@ class MainWindow(QMainWindow):
         self.action_export_all_to_excel.setStatusTip("Export all items to Excel format")
         self.action_export_all_to_excel.triggered.connect(lambda: self.export("all", "excel"))
         self.menu_export_all.addAction(self.action_export_all_to_excel)
+
+        self.action_export_all_to_parquet = QAction("To Parquet", self)
+        self.action_export_all_to_parquet.setStatusTip("Export all items to Parquet format")
+        self.action_export_all_to_parquet.triggered.connect(lambda: self.export("all", "parquet"))
+        self.menu_export_all.addAction(self.action_export_all_to_parquet)
+
+        self.action_export_all_to_hdf5 = QAction("To HDF5", self)
+        self.action_export_all_to_hdf5.setStatusTip("Export all items to HDF5 format")
+        self.action_export_all_to_hdf5.triggered.connect(lambda: self.export("all", "hdf5"))
+        self.menu_export_all.addAction(self.action_export_all_to_hdf5)
        
 
         #Add MenuFile/MenuExport action to menubar            
@@ -419,7 +444,7 @@ class MainWindow(QMainWindow):
         active_table_view = self.get_active_tableview()
         
         if self.is_tableview_empty(active_table_view):
-            self.render_info_text("Please run a query first.                         ")
+            self.render_info_text("Please run a query first.")
             return
 
         if scope == 'all':
@@ -428,41 +453,38 @@ class MainWindow(QMainWindow):
             results, columns = self.get_selected_rows(active_table_view)
             
             if not results or not columns:
-                self.render_info_text("Please make a valid selection.                        ")
+                self.render_info_text("Please make a valid selection.")
                 return        
-       
+    
         e = None
-        if format == 'csv':
-            # Open a file dialog to choose the save location
-            file_path, _ = QFileDialog.getSaveFileName(self, "Save CSV", "", "CSV Files (*.csv);;All Files (*)")
+        file_dialog_filters = {
+            'csv': "CSV Files (*.csv);;All Files (*)",
+            'json': "JSON Files (*.json);;All Files (*)",
+            'html': "HTML Files (*.html);;All Files (*)",
+            'xml': "XML Files (*.xml);;All Files (*)",
+            'excel': "Excel Files (*.xlsx);;All Files (*)",
+            'parquet': "Parquet Files (*.parquet);;All Files (*)",
+            'hdf5': "HDF5 Files (*.h5);;All Files (*)"
+        }
+        
+        if format in file_dialog_filters:
+            file_path, _ = QFileDialog.getSaveFileName(self, f"Save {format.upper()}", "", file_dialog_filters[format])
             if file_path:
-                e = self.main_app.exportToCSV(results, columns, file_path)
-        elif format == 'json':
-            # Open a file dialog to choose the save location
-            file_path, _ = QFileDialog.getSaveFileName(self, "Save JSON", "", "JSON Files (*.json);;All Files (*)")
-            if file_path:
-                e = self.main_app.exportToJSON(results, columns, file_path)
-        elif format == 'html':
-            # Open a file dialog to choose the save location
-            file_path, _ = QFileDialog.getSaveFileName(self, "Save HTML", "", "HTML Files (*.html);;All Files (*)")
-            if file_path:
-                e = self.main_app.exportToHTML(results, columns, file_path)
-        elif format == 'xml':
-            # Open a file dialog to choose the save location
-            file_path, _ = QFileDialog.getSaveFileName(self, "Save XML", "", "XML Files (*.xml);;All Files (*)")
-            if file_path:
-                e = self.main_app.exportToXML(results, columns, file_path)                                                                                                                      
-        elif format == 'excel':
-            # Open a file dialog to choose the save location
-            file_path, _ = QFileDialog.getSaveFileName(self, "Save Excel", "", "Excel Files (*.xlsx);;All Files (*)")
-            if file_path:
-                e = self.main_app.exportToEXCEL(results, columns, file_path)                  
+                export_methods = {
+                    'csv': self.main_app.exportToCSV,
+                    'json': self.main_app.exportToJSON,
+                    'html': self.main_app.exportToHTML,
+                    'xml': self.main_app.exportToXML,
+                    'excel': self.main_app.exportToEXCEL,
+                    'parquet': self.main_app.exportToParquet,
+                    'hdf5': self.main_app.exportToHDF5
+                }
+                e = export_methods[format](results, columns, file_path)
         
         if e is True:
             QMessageBox.information(self, "Success", "File was exported successfully.")
         elif e is not None:
             self.render_detailed_error_text(f"{e}")
-                      
 
     def get_selected_rows(self, table_view):
 
@@ -522,9 +544,6 @@ class MainWindow(QMainWindow):
             QTableView {
                 border: 1px solid #fff;
             }
-            QTableView::item {
-
-            }                           
         """)     
 
     def new_connection(self):

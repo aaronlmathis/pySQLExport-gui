@@ -129,11 +129,6 @@ class NewConnectionWindow(QMainWindow):
         self.password_input = QLineEdit()
         self.password_input.setEchoMode(QLineEdit.EchoMode.Password)
         self.database_input = QLineEdit()
-
-        self.username_input.setText('root')
-        self.server_input.setText('localhost')
-        self.password_input.setText('my-secret-pw')
-        self.database_input.setText('employees')
         
         self.port_input = QLineEdit()
         self.port_input.setText("3306")
