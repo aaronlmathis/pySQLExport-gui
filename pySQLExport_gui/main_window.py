@@ -28,13 +28,13 @@
 
 from PyQt6.QtGui import ( 
     QFont, QFontDatabase, QAction, 
-    QKeySequence, QStandardItemModel, QStandardItem
+    QKeySequence, QStandardItemModel, QStandardItem, QMouseEvent
 
 )
 
 from PyQt6.QtCore import (
     QMetaObject, Qt, QCoreApplication, 
-    QRect
+    QRect, pyqtSlot 
 )
 
 from PyQt6.QtWidgets import (
@@ -49,6 +49,37 @@ from PyQt6.QtWidgets import (
 )
 
 from pySQLExport_gui.pySQLExport import PySQLExport
+
+class EditableTabWidget(QTabWidget):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.line_edit = QLineEdit(self)
+        self.line_edit.setWindowFlags(Qt.WindowType.Popup)
+        self.line_edit.editingFinished.connect(self.finish_editing)
+        self.line_edit.hide()
+        self.editing_index = -1
+
+    def mouseDoubleClickEvent(self, event: QMouseEvent):
+        index = self.tabBar().tabAt(event.pos())
+        if index != -1 and index != self.count() - 1:  # Prevent editing "New +" tab
+            self.start_editing(index)
+        super().mouseDoubleClickEvent(event)
+
+    def start_editing(self, index):
+        rect = self.tabBar().tabRect(index)
+        self.line_edit.setGeometry(rect)
+        self.line_edit.setText(self.tabText(index))
+        self.line_edit.show()
+        self.line_edit.setFocus()
+        self.line_edit.selectAll()
+        self.editing_index = index
+
+    def finish_editing(self):
+        if self.editing_index != -1:
+            new_text = self.line_edit.text()
+            self.setTabText(self.editing_index, new_text)
+            self.line_edit.hide()
+            self.editing_index = -1
 
 class MainWindow(QMainWindow):
     def __init__(self, main_app):
@@ -141,21 +172,23 @@ class MainWindow(QMainWindow):
         #self.verticalLayout.addLayout(self.formLayout_2, stretch=1)
 
     def render_tab_table(self):
-        self.tab_widget =  QTabWidget(self.centralwidget)
+        
+        self.tab_widget = EditableTabWidget(self.centralwidget)  # Use EditableTabWidget
         self.tab_widget.setObjectName("tab_widget")
+        self.tab_widget.setTabsClosable(True)
+        self.tab_widget.tabCloseRequested.connect(self.close_tab)
 
-        self.tab_1 =  QWidget()
-        self.tab_1.setObjectName("tab_1")
-        self.tab_1_layout =  QVBoxLayout(self.tab_1)  # Create a layout for the tab
-        self.tab_1_layout.setContentsMargins(0, 0, 0, 0)  # Optional: set margins for the layout
-        self.table_view_1 = QTableView(self.tab_1)
-        self.table_view_1.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
-        self.table_view_1.setSelectionBehavior(QAbstractItemView.SelectionBehavior.SelectRows)  # Set selection behavior to rows
-        self.table_view_1.setObjectName("table_view_1")
-        self.tab_1_layout.addWidget(self.table_view_1)  # Add the tableView to the layout
-        self.tab_widget.addTab(self.tab_1, "")
+        self.tab_widget.addTab(QWidget(), "New +")
+        self.tab_widget.tabBarClicked.connect(self.handle_tab_click)
+        self.add_new_tab()
         self.verticalLayout.addWidget(self.tab_widget, stretch=9)  # Add the tabWidget with stretch factor
-    
+
+    @pyqtSlot(int)
+    def handle_tab_click(self, index):
+        if index == self.tab_widget.count() - 1:  # If "New +" tab is clicked
+            new_tab_index = self.add_new_tab()
+            self.tab_widget.setCurrentIndex(new_tab_index)
+
     def add_new_tab(self):
         new_tab = QWidget()
         new_tab.setObjectName(f"tab_{self.tab_widget.count() + 1}")
@@ -168,8 +201,17 @@ class MainWindow(QMainWindow):
         new_table_view.setObjectName(f"table_view_{self.tab_widget.count() + 1}")
         new_tab_layout.addWidget(new_table_view)
 
-        self.tab_widget.addTab(new_tab, f"Query {self.tab_widget.count() + 1}")
+        tab_num = 1  if self.tab_widget.count() == 1 else self.tab_widget.count() 
+
+        # Insert the new tab before the "New +" tab
+        index = self.tab_widget.count() - 1
+        self.tab_widget.insertTab(index, new_tab, f"Untitled {tab_num}")
         self.tab_widget.setCurrentWidget(new_tab)
+        return index    
+    
+    def close_tab(self, index):
+        if index != self.tab_widget.count() - 1:  # Prevent closing "New +" tab
+            self.tab_widget.removeTab(index)
 
     def render_menu_bar(self):
         self.menubar = QMenuBar(self)
@@ -514,8 +556,8 @@ class MainWindow(QMainWindow):
         self.setWindowTitle(_translate("MainWindow", "pySQLExport"))
         self.label_sql_query.setText(_translate("MainWindow", "Run Query:"))
         self.query_button.setText(_translate("MainWindow", "Execute Query"))
-        self.tab_widget.setTabText(self.tab_widget.indexOf(self.tab_1), _translate("MainWindow", "Query 1"))
-        self.tab_widget.setCurrentIndex(0)
+        #self.tab_widget.setTabText(self.tab_widget.indexOf(self.tab_1), _translate("MainWindow", "Query 1"))
+        #self.tab_widget.setCurrentIndex(0)
 
     def run_query(self, query):
         if query:
