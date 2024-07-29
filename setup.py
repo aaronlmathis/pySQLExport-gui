@@ -43,7 +43,9 @@ setup(
         'PyQt6',
         'mysql-connector-python',
         'pandas',
-        'psycopg2-binary'
+        'psycopg2-binary',
+        "fastparquet",
+        "tables"
     ],
     entry_points={
         'console_scripts': [
